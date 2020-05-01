@@ -39,11 +39,14 @@ export default function makeData(columns: number) {
 }
 
 export async function seedDb(numUsers = 10) {
-  return await Axios.all(
-    new Array(numUsers)
-      .fill(null)
-      .map(() => Axios.post("/api/users", faker.helpers.userCard()))
-  )
-    .catch((err) => console.error(err))
-    .finally(() => console.debug(`DB Seeded With ${numUsers} new users`));
+  const { data: users } = await Axios.get("/api/users");
+  if (users.length < numUsers)
+    await Axios.all(
+      new Array(numUsers - users.length)
+        .fill(null)
+        .map(() => Axios.post("/api/users", faker.helpers.userCard()))
+    )
+      .catch((err) => console.error(err))
+      .then(() => window.location.reload())
+      .finally(() => console.debug(`DB Seeded With ${numUsers} new users`));
 }
